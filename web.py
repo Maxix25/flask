@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = "hello"
 # Configure DataBase
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite://users.sqlite3"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.sqlite3"
 # I don't want to resive messages with the modifications so...
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.permanent_session_lifetime = timedelta(minutes = 5)
@@ -26,6 +26,10 @@ class users(db.Model):
 @app.route("/")
 def home():
 	return render_template("index.html")
+
+@app.route("/view")
+def view():
+	return render_template("view.html", values = users.query.all())
 @app.route("/login", methods=["POST", "GET"])
 def login():
 	if request.method == "POST":
@@ -34,12 +38,13 @@ def login():
 		user = request.form["nm"]
 		session["user"] = user
 		found_user = users.query.filter_by(name = user).first()
-		if :
+		if found_user:
+			session["email"] = found_user.email
 
 		else:
 			usr = users(user, "")
 			db.session.add(usr)
-			db.commit()
+			db.session.commit()
 		flash("Login Succesful!")
 		return redirect(url_for("user"))
 	else:
@@ -55,6 +60,9 @@ def user():
 		if request.method == "POST":
 			email = request.form["email"]
 			session["email"] = email
+			found_user = users.query.filter_by(name = user).first()
+			found_user.email = email
+			db.session.commit()
 			flash("Email was saved!")
 		else:
 			if email in session:
